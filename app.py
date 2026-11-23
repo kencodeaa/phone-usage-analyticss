@@ -1,12 +1,6 @@
 """Mini App Nhóm B: L2 Dev – Màn hình thông minh, giấc ngủ an lành.
 
-Bố cục hiện đại lấy cảm hứng từ giao diện Landing/Dashboard:
-- Thanh Top Navigation (Logo + Chuyển trang nhanh)
-- Trang Chủ (Hero Banner + Tổng quan khảo sát + Truy cập nhanh)
-- Tự Kiểm Tra Thói Quen
-- Phân Tích Khảo Sát (Dashboard biểu đồ, 3 nhóm sử dụng, bảng dữ liệu & lọc)
-- Công Thức & Tiêu Chí (Quy ước Tin học 9 + Khu vực công thức Excel)
-- Báo Cáo & Kiến Thức An Toàn
+Tối ưu Responsive cho cả màn hình Desktop và chế độ dọc điện thoại (Mobile Portrait).
 """
 import pandas as pd
 import plotly.graph_objects as go
@@ -21,28 +15,32 @@ from logic import (
     validate_dataframe,
 )
 
-# [1] CẤU HÌNH TRANG & CSS TÙY CHỈNH
+# [1] CẤU HÌNH TRANG & CSS TÙY CHỈNH (DESKTOP + MOBILE PORTRAIT)
 st.set_page_config(
     page_title="Mini app nhóm B | Màn hình thông minh – Giấc ngủ an lành",
     page_icon="📱",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown(
     """
     <style>
-    /* Ẩn thanh header mặc định của Streamlit */
-    header[data-testid="stHeader"] {
-        display: none;
+    /* Ẩn thanh header & footer mặc định của Streamlit */
+    header[data-testid="stHeader"], footer {
+        display: none !important;
     }
 
     .stApp {
         background-color: #0B0F19;
         color: #F3F4F6;
+        overflow-x: hidden;
     }
     .block-container {
         padding-top: 1.1rem;
         padding-bottom: 2.5rem;
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
         max-width: 1360px;
     }
 
@@ -51,10 +49,12 @@ st.markdown(
         display: flex;
         align-items: center;
         gap: 12px;
+        margin-bottom: 4px;
     }
     .brand-icon {
         width: 42px;
         height: 42px;
+        min-width: 42px;
         background: linear-gradient(135deg, #3B82F6, #2563EB);
         border-radius: 11px;
         display: flex;
@@ -79,31 +79,29 @@ st.markdown(
         font-size: 0.7rem;
         font-weight: 600;
         color: #9CA3AF;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
     }
 
-    /* HIỆU ỨNG NỔI & PHÁT SÁNG CHO TẤT CẢ CÁC NÚT */
+    /* HIỆU ỨNG NỔI & PHÁT SÁNG CHO CÁC NÚT */
     div.stButton > button {
         transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
         border-radius: 10px !important;
         font-weight: 600 !important;
+        min-height: 42px !important;
+        white-space: nowrap !important;
     }
-
-    /* Nút thường / Nút điều hướng */
     div.stButton > button[kind="secondary"] {
         background-color: #131A2A !important;
         border: 1px solid #1F2937 !important;
         color: #E5E7EB !important;
     }
     div.stButton > button[kind="secondary"]:hover {
-        transform: translateY(-3px) !important;
+        transform: translateY(-2px) !important;
         border-color: #60A5FA !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4), 0 0 12px rgba(96, 165, 250, 0.28) !important;
     }
-
-    /* Nút chính (Primary - Xanh dương) */
     div.stButton > button[kind="primary"] {
         background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
         border: 1px solid #60A5FA !important;
@@ -111,31 +109,26 @@ st.markdown(
         box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
     }
     div.stButton > button[kind="primary"]:hover {
-        transform: translateY(-3px) !important;
+        transform: translateY(-2px) !important;
         box-shadow: 0 8px 24px rgba(59, 130, 246, 0.65), 0 0 16px rgba(96, 165, 250, 0.45) !important;
     }
-
     div.stButton > button:active {
         transform: translateY(0px) scale(0.98) !important;
     }
 
-    /* HERO BANNER (PHONG CÁCH THẺ LỚN HIỆN ĐẠI) */
+    /* HERO BANNER */
     .hero-card {
         background: radial-gradient(circle at 82% 45%, rgba(59, 130, 246, 0.16) 0%, rgba(19, 26, 42, 0.96) 55%, #111827 100%);
         border: 1px solid #1F2937;
         border-radius: 20px;
         padding: 34px 38px;
-        margin: 14px 0 26px 0;
+        margin: 12px 0 22px 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 28px;
         box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
         transition: all 0.3s ease;
-    }
-    .hero-card:hover {
-        border-color: #2D3B55;
-        box-shadow: 0 18px 42px rgba(37, 99, 235, 0.14);
     }
     .hero-badge {
         display: inline-flex;
@@ -148,11 +141,12 @@ st.markdown(
         border-radius: 999px;
         font-size: 0.78rem;
         font-weight: 600;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
     .hero-dot {
         width: 7px;
         height: 7px;
+        min-width: 7px;
         border-radius: 50%;
         background-color: #60A5FA;
         box-shadow: 0 0 8px #60A5FA;
@@ -160,9 +154,9 @@ st.markdown(
     .hero-heading {
         font-size: 2.35rem;
         font-weight: 900;
-        line-height: 1.12;
+        line-height: 1.15;
         letter-spacing: -0.01em;
-        margin: 0 0 16px 0;
+        margin: 0 0 14px 0;
         color: #FFFFFF;
     }
     .hero-heading span {
@@ -175,11 +169,11 @@ st.markdown(
         color: #CBD5E1;
         line-height: 1.6;
         max-width: 560px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     .hero-visual {
         position: relative;
-        min-width: 310px;
+        min-width: 300px;
         height: 230px;
         display: flex;
         align-items: center;
@@ -187,18 +181,12 @@ st.markdown(
     }
     .float-pill {
         position: absolute;
-        background: rgba(15, 23, 42, 0.88);
+        background: rgba(15, 23, 42, 0.92);
         backdrop-filter: blur(8px);
         border: 1px solid #334155;
         border-radius: 12px;
         padding: 8px 13px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-        transition: all 0.25s ease;
-    }
-    .float-pill:hover {
-        transform: translateY(-3px);
-        border-color: #60A5FA;
-        box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
     }
 
     /* TIÊU ĐỀ SECTION & PILL NGUỒN DỮ LIỆU */
@@ -220,13 +208,14 @@ st.markdown(
         background-color: #131A2A;
         border: 1px solid #1F2937;
         border-radius: 999px;
-        padding: 4px 14px;
+        padding: 5px 14px;
         font-size: 0.78rem;
         color: #9CA3AF;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
+        max-width: 100%;
     }
 
-    /* THẺ KPI (4 THẺ TỔNG QUAN) + HOVER PHÁT SÁNG */
+    /* THẺ KPI (4 THẺ TỔNG QUAN) */
     .kpi-card {
         background-color: #131A2A;
         border: 1px solid #1F2937;
@@ -234,26 +223,25 @@ st.markdown(
         padding: 18px 20px;
         height: 100%;
         transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
-        cursor: default;
     }
     .kpi-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-4px);
         border-color: #3B82F6;
-        box-shadow: 0 12px 26px -4px rgba(59, 130, 246, 0.35), 0 0 15px rgba(59, 130, 246, 0.22);
+        box-shadow: 0 12px 26px -4px rgba(59, 130, 246, 0.35);
     }
     .kpi-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
     .kpi-label {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 600;
         color: #9CA3AF;
     }
     .kpi-value {
-        font-size: 1.95rem;
+        font-size: 1.9rem;
         font-weight: 800;
         color: #FFFFFF;
         line-height: 1.1;
@@ -273,40 +261,24 @@ st.markdown(
         font-size: 16px;
     }
 
-    /* 3 THẺ PHÂN NHÓM (NHÓM 1, NHÓM 2, NHÓM 3) + HOVER PHÁT SÁNG THEO MÀU */
+    /* 3 THẺ PHÂN NHÓM */
     .group-card {
         border-radius: 14px;
         padding: 18px 20px;
         height: 100%;
         transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
-        cursor: default;
     }
     .group-1 {
         background: linear-gradient(145deg, #10253E 0%, #111927 100%);
         border: 1px solid #1D4ED8;
     }
-    .group-1:hover {
-        transform: translateY(-5px);
-        border-color: #60A5FA;
-        box-shadow: 0 12px 28px -4px rgba(59, 130, 246, 0.48), 0 0 18px rgba(96, 165, 250, 0.32);
-    }
     .group-2 {
         background: linear-gradient(145deg, #1E1B3A 0%, #111927 100%);
         border: 1px solid #4F46E5;
     }
-    .group-2:hover {
-        transform: translateY(-5px);
-        border-color: #A5B4FC;
-        box-shadow: 0 12px 28px -4px rgba(99, 102, 241, 0.48), 0 0 18px rgba(165, 180, 252, 0.32);
-    }
     .group-3 {
         background: linear-gradient(145deg, #2D1520 0%, #111927 100%);
         border: 1px solid #DC2626;
-    }
-    .group-3:hover {
-        transform: translateY(-5px);
-        border-color: #F87171;
-        box-shadow: 0 12px 28px -4px rgba(239, 68, 68, 0.48), 0 0 18px rgba(248, 113, 113, 0.32);
     }
     .group-title {
         font-size: 0.78rem;
@@ -331,20 +303,20 @@ st.markdown(
         border-top: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* THẺ TRUY CẬP NHANH (QUICK ACCESS CARDS) */
+    /* THẺ TRUY CẬP NHANH */
     .quick-card {
         background-color: #131A2A;
         border: 1px solid #1F2937;
         border-radius: 16px;
         padding: 20px 22px;
         margin-bottom: 10px;
-        min-height: 158px;
+        min-height: 152px;
         transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     .quick-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-4px);
         border-color: #60A5FA;
-        box-shadow: 0 12px 28px rgba(59, 130, 246, 0.3), 0 0 14px rgba(96, 165, 250, 0.22);
+        box-shadow: 0 12px 28px rgba(59, 130, 246, 0.3);
     }
     .quick-icon {
         width: 38px;
@@ -354,7 +326,7 @@ st.markdown(
         align-items: center;
         justify-content: center;
         font-size: 18px;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
     .quick-title {
         font-size: 1.02rem;
@@ -363,16 +335,109 @@ st.markdown(
         margin-bottom: 6px;
     }
     .quick-desc {
-        font-size: 0.83rem;
+        font-size: 0.84rem;
         color: #9CA3AF;
         line-height: 1.5;
+    }
+
+    /* =========================================================================
+       TỐI ƯU GIAO DIỆN CHẾ ĐỘ DỌC ĐIỆN THOẠI (MOBILE PORTRAIT <= 768px)
+       ========================================================================= */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-top: 0.75rem !important;
+            padding-left: 0.85rem !important;
+            padding-right: 0.85rem !important;
+            padding-bottom: 2rem !important;
+        }
+
+        /* Thu gọn khoảng cách cột của Streamlit khi xếp dọc trên điện thoại */
+        div[data-testid="stHorizontalBlock"] {
+            gap: 0.55rem !important;
+        }
+        div[data-testid="column"] {
+            margin-bottom: 0.2rem !important;
+        }
+
+        /* Nút bấm dễ chạm bằng ngón cái trên điện thoại */
+        div.stButton > button {
+            padding: 0.45rem 0.65rem !important;
+            font-size: 0.84rem !important;
+            min-height: 44px !important;
+        }
+
+        /* Hero Banner chuyển sang bố cục dọc gọn gàng */
+        .hero-card {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 22px 20px;
+            margin: 8px 0 16px 0;
+            gap: 18px;
+            border-radius: 16px;
+        }
+        .hero-badge {
+            font-size: 0.72rem;
+            padding: 4px 11px;
+            margin-bottom: 10px;
+        }
+        .hero-heading {
+            font-size: 1.62rem;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+        .hero-desc {
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+        .hero-visual {
+            width: 100%;
+            min-width: unset;
+            height: 185px;
+            margin-top: 4px;
+        }
+        .hero-visual svg {
+            width: 165px;
+            height: 165px;
+        }
+        .float-pill {
+            padding: 6px 10px;
+            border-radius: 10px;
+        }
+        .float-pill:first-of-type {
+            top: 4px !important;
+            right: 4px !important;
+        }
+        .float-pill:last-of-type {
+            bottom: 4px !important;
+            left: 4px !important;
+        }
+
+        /* Thẻ KPI & Phân nhóm trên màn hình dọc */
+        .kpi-card, .group-card {
+            padding: 15px 16px;
+            margin-bottom: 6px;
+        }
+        .kpi-value, .group-val {
+            font-size: 1.65rem;
+        }
+        .quick-card {
+            min-height: auto;
+            padding: 16px 18px;
+        }
+        .sec-title {
+            font-size: 1.12rem;
+        }
+        .source-pill {
+            font-size: 0.73rem;
+            border-radius: 12px;
+        }
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# [2] KHỞI TẠO DỮ LIỆU & TRẠNG THÁI TRANG (NAVIGATION)
+# [2] KHỞI TẠO DỮ LIỆU & TRẠNG THÁI TRANG
 if "survey_df" not in st.session_state:
     st.session_state.survey_df = get_default_survey_data()
 if "data_source_label" not in st.session_state:
@@ -402,6 +467,9 @@ def read_uploaded_file(uploaded_file) -> pd.DataFrame:
 df = st.session_state.survey_df
 summary = summarize_dataframe(df)
 
+# Cấu hình Plotly thân thiện với thao tác vuốt cảm ứng trên điện thoại
+PLOTLY_CONFIG = {"displayModeBar": False, "responsive": True}
+
 # [3] THANH ĐIỀU HƯỚNG TRÊN CÙNG (TOP NAVBAR)
 nav_logo, nav_p1, nav_p2, nav_p3, nav_p4, nav_p5 = st.columns([2.8, 1.25, 1.45, 1.65, 1.5, 1.55])
 
@@ -422,9 +490,9 @@ with nav_logo:
 pages = [
     ("Trang chủ", "🏠 Trang chủ", nav_p1),
     ("Tự kiểm tra", "🧭 Tự kiểm tra", nav_p2),
-    ("Phân tích khảo sát", "📊 Phân tích khảo sát", nav_p3),
-    ("Công thức & Tiêu chí", "🖩 Công thức Excel", nav_p4),
-    ("Kiến thức & An toàn", "📘 Kiến thức & An toàn", nav_p5),
+    ("Phân tích khảo sát", "📊 Phân tích", nav_p3),
+    ("Công thức & Tiêu chí", "🖩 Công thức", nav_p4),
+    ("Kiến thức & An toàn", "📘 Kiến thức", nav_p5),
 ]
 
 for page_key, page_label, col in pages:
@@ -434,13 +502,10 @@ for page_key, page_label, col in pages:
             go_to(page_key)
             st.rerun()
 
-st.write("")
-
 # ==============================================================================
 # TRANG 1: TRANG CHỦ
 # ==============================================================================
 if st.session_state.active_page == "Trang chủ":
-    # 1. HERO BANNER 2 CỘT
     st.markdown(
         """
         <div class="hero-card">
@@ -468,12 +533,12 @@ if st.session_state.active_page == "Trang chủ":
                     <text x="129" y="79" fill="#FBBF24" font-size="11" font-weight="bold">zZ</text>
                 </svg>
                 <div class="float-pill" style="top: 12px; right: -8px;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #60A5FA;">Khuyến nghị ngủ ≥ 8h</div>
-                    <div style="font-size: 0.68rem; color: #9CA3AF;">mốc tham khảo tuổi 13–18</div>
+                    <div style="font-size: 0.76rem; font-weight: 700; color: #60A5FA;">Khuyến nghị ngủ ≥ 8h</div>
+                    <div style="font-size: 0.66rem; color: #9CA3AF;">mốc tham khảo tuổi 13–18</div>
                 </div>
                 <div class="float-pill" style="bottom: 16px; left: -12px;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #F87171;">Dùng ĐT &gt; 4 giờ/ngày</div>
-                    <div style="font-size: 0.68rem; color: #9CA3AF;">ngưỡng cảnh báo thói quen</div>
+                    <div style="font-size: 0.76rem; font-weight: 700; color: #F87171;">Dùng ĐT &gt; 4 giờ/ngày</div>
+                    <div style="font-size: 0.66rem; color: #9CA3AF;">ngưỡng cảnh báo thói quen</div>
                 </div>
             </div>
         </div>
@@ -481,8 +546,7 @@ if st.session_state.active_page == "Trang chủ":
         unsafe_allow_html=True,
     )
 
-    # Hai nút hành động chính ngay dưới Hero Banner
-    cta1, cta2, _ = st.columns([1.9, 2.0, 6.1])
+    cta1, cta2, _ = st.columns([2.0, 2.1, 5.9])
     with cta1:
         if st.button("🧭 Bắt đầu tự kiểm tra", type="primary", use_container_width=True):
             go_to("Tự kiểm tra")
@@ -494,7 +558,6 @@ if st.session_state.active_page == "Trang chủ":
 
     st.write("")
 
-    # 2. TỔNG QUAN KHẢO SÁT (4 THẺ KPI NỔI BẬT)
     st.markdown('<div class="sec-title">Tổng quan khảo sát</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="sec-sub">Các chỉ số được tính trực tiếp từ dữ liệu khảo sát đang nạp trong ứng dụng.</div>',
@@ -565,7 +628,6 @@ if st.session_state.active_page == "Trang chủ":
 
     st.write("")
 
-    # 3. TRUY CẬP NHANH (3 THẺ CHỨC NĂNG)
     st.markdown('<div class="sec-title">Truy cập nhanh</div>', unsafe_allow_html=True)
     st.markdown('<div class="sec-sub">Chọn một mục để bắt đầu khám phá dữ liệu.</div>', unsafe_allow_html=True)
 
@@ -666,9 +728,10 @@ elif st.session_state.active_page == "Tự kiểm tra":
             st.success(f"✅ {msg}")
 
     st.caption("Ngưỡng >4 giờ/ngày là quy ước học tập của dự án; mốc 8–10 giờ là khuyến nghị tham khảo phổ biến cho thanh thiếu niên 13–18 tuổi.")
-    
+
+
 # ==============================================================================
-# TRANG 3: PHÂN TÍCH KHẢO SÁT (3 NHÓM, BIỂU ĐỒ & BẢNG DỮ LIỆU)
+# TRANG 3: PHÂN TÍCH KHẢO SÁT
 # ==============================================================================
 elif st.session_state.active_page == "Phân tích khảo sát":
     st.markdown('<div class="sec-title">📊 Phân tích chi tiết khảo sát lớp 9B</div>', unsafe_allow_html=True)
@@ -677,7 +740,6 @@ elif st.session_state.active_page == "Phân tích khảo sát":
         unsafe_allow_html=True,
     )
 
-    # Hàng 1: 3 thẻ phân nhóm sử dụng điện thoại (Nổi & phát sáng theo màu)
     g1, g2, g3 = st.columns(3)
     with g1:
         st.markdown(
@@ -727,14 +789,13 @@ elif st.session_state.active_page == "Phân tích khảo sát":
 
     st.write("")
 
-    # Hàng 2: 2 Biểu đồ Plotly
     c_left, c_right = st.columns(2)
     with c_left:
-        st.markdown("##### 📊 Phân Phối Học Sinh Theo Nhóm Sử Dụng Điện Thoại")
+        st.markdown("##### 📊 Phân Phối Học Sinh Theo Nhóm")
         fig_bar = go.Figure(
             data=[
                 go.Bar(
-                    x=["Nhóm 1 (< 2h)", "Nhóm 2 (2h – 4h)", "Nhóm 3 (> 4h)"],
+                    x=["Nhóm 1 (<2h)", "Nhóm 2 (2–4h)", "Nhóm 3 (>4h)"],
                     y=[summary["g1_count"], summary["g2_count"], summary["g3_count"]],
                     marker_color=["#3B82F6", "#60A5FA", "#EF4444"],
                     text=[f"{summary['g1_count']} HS", f"{summary['g2_count']} HS", f"{summary['g3_count']} HS"],
@@ -745,42 +806,43 @@ elif st.session_state.active_page == "Phân tích khảo sát":
         fig_bar.update_layout(
             paper_bgcolor="#131A2A",
             plot_bgcolor="#131A2A",
-            font=dict(color="#E5E7EB"),
-            margin=dict(l=20, r=20, t=25, b=20),
-            height=320,
-            yaxis=dict(gridcolor="#1F2937", title="Số học sinh", dtick=1),
-            xaxis=dict(gridcolor="#1F2937"),
+            font=dict(color="#E5E7EB", size=12),
+            margin=dict(l=16, r=16, t=28, b=20),
+            height=290,
+            dragmode=False,
+            yaxis=dict(gridcolor="#1F2937", title="Số HS", dtick=2, fixedrange=True),
+            xaxis=dict(gridcolor="#1F2937", fixedrange=True),
         )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        st.plotly_chart(fig_bar, use_container_width=True, config=PLOTLY_CONFIG)
 
     with c_right:
-        st.markdown("##### 🌙 Thói Quen Dùng Điện Thoại 1 Giờ Trước Khi Ngủ")
+        st.markdown("##### 🌙 Dùng Điện Thoại 1 Giờ Trước Ngủ")
         fig_donut = go.Figure(
             data=[
                 go.Pie(
-                    labels=["Có dùng trước ngủ", "Không dùng trước ngủ"],
+                    labels=["Có dùng", "Không dùng"],
                     values=[summary["before_bed_yes"], summary["before_bed_no"]],
                     hole=0.58,
                     marker=dict(colors=["#F59E0B", "#3B82F6"], line=dict(color="#131A2A", width=3)),
                     textinfo="label+percent",
-                    textfont=dict(color="#F3F4F6"),
+                    textfont=dict(color="#F3F4F6", size=12),
                 )
             ]
         )
         fig_donut.update_layout(
             paper_bgcolor="#131A2A",
             plot_bgcolor="#131A2A",
-            font=dict(color="#E5E7EB"),
-            margin=dict(l=20, r=20, t=25, b=20),
-            height=320,
+            font=dict(color="#E5E7EB", size=12),
+            margin=dict(l=16, r=16, t=24, b=24),
+            height=290,
+            dragmode=False,
             showlegend=True,
-            legend=dict(orientation="h", yanchor="bottom", y=-0.12, xanchor="center", x=0.5),
+            legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5),
         )
-        st.plotly_chart(fig_donut, use_container_width=True)
+        st.plotly_chart(fig_donut, use_container_width=True, config=PLOTLY_CONFIG)
 
     st.divider()
 
-    # Hàng 3: Tải file & Bảng dữ liệu khảo sát
     st.markdown("#### ⊞ Quản lý & Tra cứu Dữ liệu Khảo sát")
     uploaded = st.file_uploader(
         "Tải file Excel Nhóm B (.xlsx, .xls) hoặc CSV ẩn danh để thay thế dữ liệu phân tích",
@@ -828,7 +890,7 @@ elif st.session_state.active_page == "Phân tích khảo sát":
 # TRANG 4: CÔNG THỨC EXCEL & TIÊU CHÍ
 # ==============================================================================
 elif st.session_state.active_page == "Công thức & Tiêu chí":
-    st.markdown('<div class="sec-title">⚖️ Quy ước đánh giá & Khu vực công thức Excel (Tin học 9)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-title">⚖️ Quy ước đánh giá & Công thức Excel (Tin học 9)</div>', unsafe_allow_html=True)
     c_a, c_b = st.columns(2)
     with c_a:
         st.info(
